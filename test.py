@@ -1,4 +1,4 @@
-        import nltk
+import nltk
 from nltk.corpus import stopwords, treebank
 from nltk.stem import WordNetLemmatizer
 from collections import Counter
