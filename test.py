@@ -1,34 +1,33 @@
-import nltk
-import re
+        import nltk
 from nltk.corpus import stopwords, treebank
 from nltk.stem import WordNetLemmatizer
 from collections import Counter
 from nltk.util import bigrams
 # ======= Load Dataset =======
-corpus = treebank.sents()[:10]
+corpus = treebank.sents()[:10]  
 
 stop_words = set(stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
-
 # ======= POS Mapping =======
 def get_wordnet_pos(tag):
-    if tag.startswith('J'): return 'a'
-    elif tag.startswith('V'): return 'v'
-    elif tag.startswith('N'): return 'n'
-    elif tag.startswith('R'): return 'r'
-    return 'n'
+    if tag.startswith('J'): return 'a'   # adjective
+    elif tag.startswith('V'): return 'v' # verb
+    elif tag.startswith('N'): return 'n' # noun
+    elif tag.startswith('R'): return 'r' # adverb
+    return 'n'  # default noun
 
-# ======= Text Normalization (works on token lists from treebank) =======
+# ======= Text Normalization =======
 def normalize_text(token_list_sentences):
     cleaned = []
 
     for tokens in token_list_sentences:
-        tokens = [w.lower() for w in tokens]
-        tokens = [w for w in tokens if w.isalpha()]
-        tokens = [w for w in tokens if w not in stop_words]
+        tokens = [w.lower() for w in tokens]                 # lowercase
+        tokens = [w for w in tokens if w.isalpha()]          # remove punctuation
+        tokens = [w for w in tokens if w not in stop_words]  # remove stopwords
 
-        pos_tags = nltk.pos_tag(tokens)
+        pos_tags = nltk.pos_tag(tokens)   
 
+        # Lemmatization
         lemmas = [
             lemmatizer.lemmatize(w, get_wordnet_pos(tag))
             for w, tag in pos_tags
@@ -36,7 +35,6 @@ def normalize_text(token_list_sentences):
 
         cleaned.append(lemmas)
     return cleaned
-
 # ===== Normalize Dataset =====
 normalized_sentences = normalize_text(corpus)
 
@@ -48,7 +46,7 @@ for i, sent in enumerate(normalized_sentences, 1):
     print(f"S{i} (Cleaned): {sent}")
     print("-" * 30)
 
-# ===== Build Bigram Model (with start <s> and end </s>) =====
+# ===== Build Bigram Model (with <s> and </s>) =====
 bigram_sentences = [['<s>'] + sent + ['</s>'] for sent in normalized_sentences]
 all_tokens = [tok for sent in bigram_sentences for tok in sent]
 
@@ -65,8 +63,7 @@ bigram_counts = Counter(all_bigrams)
 def get_bigram_probability(w_prev, w_curr):
     count_bg = bigram_counts.get((w_prev, w_curr), 0)
     count_prev = unigram_counts.get(w_prev, 0)
-    return (count_bg + 1) / (count_prev + vocab_size)
-
+    return (count_bg + 1) / (count_prev + vocab_size)  
 # ===== Sentence Probability =====
 def calculate_sentence_probability(tokens):
     full_sent = ['<s>'] + tokens + ['</s>']
