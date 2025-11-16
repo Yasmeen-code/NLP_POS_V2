@@ -23,9 +23,9 @@ def normalize_text(token_list_sentences):
     cleaned = []
 
     for tokens in token_list_sentences:
-        tokens = [w.lower() for w in tokens]                 
-        tokens = [w for w in tokens if w.isalpha()]          
-        tokens = [w for w in tokens if w not in stop_words]  
+        tokens = [w.lower() for w in tokens]                 # lowercase
+        tokens = [w for w in tokens if w.isalpha()]          # remove punctuation
+        tokens = [w for w in tokens if w not in stop_words]  # remove stopwords
 
         pos_tags = nltk.pos_tag(tokens)
 
@@ -48,22 +48,41 @@ for i, sent in enumerate(normalized_sentences, 1):
     print(f"S{i} (Cleaned): {sent}")
     print("-" * 30)
 
-# ===== Build Bigram Model (using ngrams like the second code) =====
+# ===== Build Bigram Model (using ngrams) =====
+bigram_sentences = [['<s>'] + sent + ['</s>'] for sent in normalized_sentences]
 
-bigram_sentences = [['<s>'] + sent + ['</s>']for sent in normalized_sentences]
-
+# extract uni & bigrams
 all_tokens = []
 all_bigrams = []
-
 for sent in bigram_sentences:
     all_tokens.extend(sent)
-    all_bigrams.extend(list(ngrams(sent, 2)))   
+    all_bigrams.extend(list(ngrams(sent, 2)))
+
+# Counts
 unigram_counts = Counter(all_tokens)
 bigram_counts = Counter(all_bigrams)
-print(all_bigrams)
-print(all_tokens)
-
 vocab_size = len(unigram_counts)
+
+# ---- NEW: print counts summary ----
+print("\n" + "="*60)
+print(" BIGRAM & UNIGRAM COUNTS SUMMARY")
+print("="*60)
+print(f"Total sentences processed: {len(normalized_sentences)}")
+print(f"Total tokens (with <s> </s>): {len(all_tokens)}")
+print(f"Vocab size (unique tokens) = {vocab_size}")
+print(f"Total distinct bigrams = {len(bigram_counts)}\n")
+
+# print all bigrams sorted by frequency (most common first)
+print("Bigram counts (most -> least common):")
+for bigram, cnt in bigram_counts.most_common():
+    print(f"  {bigram} : {cnt}")
+if not bigram_counts:
+    print("  (no bigrams)")
+
+print("\nUnigram counts (most -> least common):")
+for token, cnt in unigram_counts.most_common():
+    print(f"  {token} : {cnt}")
+print("="*60 + "\n")
 
 # ===== Bigram Probability Function =====
 def get_bigram_probability(w_prev, w_curr):
